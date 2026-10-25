@@ -62,12 +62,13 @@ def compute(T, S, state, asof):
         X = project(T[tr], T[te], asof, 0.5); fa = net(shares(X, 'fin'))
         bt.append(dict(dir=tr[2:] + '->' + te[2:], model=round(net(shares(X, 'pred')) - fa, 1),
                        naive=round(net(shares(X, 'e%d' % asof)) - fa, 1)))
+    early_prev = {t: round(net(shares(T[t], 'e%d' % asof)), 1) for t in T}
     return dict(state=state, asof=(datetime.date(2026, 11, 3) - datetime.timedelta(days=asof)).isoformat(), dbe=asof,
                 early_votes=int(S['e%d' % asof].sum()),
                 groups=[dict(k=p, early=round(early[p], 1), proj=round(c[p], 1), lo=round(R.loc[p].min(), 1), hi=round(R.loc[p].max(), 1)) for p in P],
                 early_net=round(net(early), 1), proj_net=round(net(c), 1),
                 net_lo=round(min(net(r) for r in runs.values()), 1), net_hi=round(max(net(r) for r in runs.values()), 1),
-                backtest=bt)
+                backtest=bt, early_prev=early_prev)
 
 def main():
     out, state, asof = sys.argv[1], sys.argv[2], int(sys.argv[3])
